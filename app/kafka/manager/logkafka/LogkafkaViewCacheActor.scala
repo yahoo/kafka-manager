@@ -6,10 +6,10 @@
 package kafka.manager.logkafka
 
 import akka.actor.{ActorPath, Cancellable}
-import kafka.manager.model.{ClusterContext, ActorModel}
-import ActorModel._
 import kafka.manager.base.{LongRunningPoolActor, LongRunningPoolConfig}
 import kafka.manager.features.KMLogKafkaFeature
+import kafka.manager.model.ActorModel._
+import kafka.manager.model.ClusterContext
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -38,7 +38,7 @@ class LogkafkaViewCacheActor(config: LogkafkaViewCacheActorConfig) extends LongR
       log.info("Started actor %s".format(self.path))
       log.info("Scheduling updater for %s".format(config.updatePeriod))
       cancellable = Some(
-        context.system.scheduler.schedule(0 seconds,
+        context.system.scheduler.scheduleAtFixedRate(0 seconds,
           config.updatePeriod,
           self,
           LKVForceUpdate)(context.system.dispatcher,self)

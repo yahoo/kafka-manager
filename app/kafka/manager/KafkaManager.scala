@@ -5,25 +5,23 @@
 
 package kafka.manager
 
-import java.util.Properties
-import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
-import org.json4s.jackson.JsonMethods.parse
-
 import akka.actor.{ActorPath, ActorSystem, Cancellable, Props}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import grizzled.slf4j.Logging
-import kafka.manager.actor.{KafkaManagerActor, KafkaManagerActorConfig}
-import kafka.manager.base.LongRunningPoolConfig
-import kafka.manager.model._
-import ActorModel._
 import kafka.manager.actor.cluster.KafkaManagedOffsetCacheConfig
+import kafka.manager.actor.{KafkaManagerActor, KafkaManagerActorConfig}
+import kafka.manager.model.ActorModel._
+import kafka.manager.model._
 import kafka.manager.utils.UtilException
 import kafka.manager.utils.zero81.ReassignPartitionErrors.ReplicationOutOfSync
-import kafka.manager.utils.zero81.{ForceOnReplicationOutOfSync, ForceReassignmentCommand, ReassignPartitionErrors}
+import kafka.manager.utils.zero81.{ForceOnReplicationOutOfSync, ForceReassignmentCommand}
+import org.json4s.jackson.JsonMethods.parse
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import java.util.Properties
+import java.util.concurrent.{LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -387,8 +385,10 @@ class KafkaManager(akkaConfig: Config) extends Logging {
     pleCancellable += (clusterName ->
       (
         Some(
-          system.scheduler.schedule(0 seconds, Duration(timeIntervalMinutes, TimeUnit.MINUTES)) {
-            runPreferredLeaderElectionWithAllTopics(clusterName)
+          system.scheduler.scheduleAtFixedRate(0 seconds, Duration(timeIntervalMinutes, TimeUnit.MINUTES)) {
+            () => {
+              runPreferredLeaderElectionWithAllTopics(clusterName)
+            }
           }
         ),
         timeIntervalMinutes

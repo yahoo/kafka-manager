@@ -2,7 +2,7 @@
 * Copyright 2015 Yahoo Inc. Licensed under the Apache License, Version 2.0
 * See accompanying LICENSE file.
 *@
-@import scalaz.{\/}
+@import scalaz.\/
 @(clusterName: String, errorOrForm: kafka.manager.ApiError \/ Form[models.form.ClusterOperation]
 )(implicit request: RequestHeader, messages: play.api.i18n.Messages, menus: models.navigation.Menus)
 
@@ -61,7 +61,7 @@
         @b4.select(form("saslMechanism"), options = kafka.manager.model.SASLmechanism.formSelectList, '_label -> "SASL Mechanism (only applies to SASL based security)" )
         @b4.text(form("jaasConfig"), '_label -> "SASL JAAS Config (only applies to SASL based security)")
         @b4.submit('class -> "submit-button btn btn-primary btn"){ Save }
-        <a href="@routes.Application.index()" class="cancel-button btn btn-secondary" role="button">Cancel</a>
+        <a href="@routes.Application.index" class="cancel-button btn btn-secondary" role="button">Cancel</a>
     </fieldset>
     }
 }

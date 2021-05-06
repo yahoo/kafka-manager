@@ -4,29 +4,24 @@
  */
 package kafka.test
 
-import java.time.Duration
-import java.util.{Properties, UUID}
-import java.util.concurrent.atomic.AtomicInteger
-
 import grizzled.slf4j.Logging
-import kafka.consumer._
-import kafka.manager.model.{Kafka_0_8_2_0, Kafka_1_1_0}
+import kafka.manager.model.Kafka_1_1_0
 import kafka.manager.utils.AdminUtils
 import kafka.message.{DefaultCompressionCodec, NoCompressionCodec}
-import kafka.serializer.DefaultDecoder
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
+import org.apache.kafka.clients.consumer.ConsumerConfig._
 import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
-import org.apache.kafka.streams.kstream.{ForeachAction, KStream, Printed}
-import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder}
-import org.apache.kafka.clients.consumer.ConsumerConfig._
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.common.serialization.{ByteArrayDeserializer, Serdes}
-import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.kstream.{ForeachAction, KStream}
+import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig}
 
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Properties, UUID}
 import scala.util.Try
 
 /**
@@ -136,11 +131,7 @@ case class HighLevelConsumer(topic: String,
   val kstream : KStream[Array[Byte], Array[Byte]] = streamsBuilder.stream(topic)
 
   val kafkaStreams = new KafkaStreams(streamsBuilder.build(), commonConsumerConfig)
-  kafkaStreams.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler {
-    override def uncaughtException(t: Thread, e: Throwable): Unit = {
-      error("Failed to initialize KafkStreams", e)
-    }
-  })
+  kafkaStreams.setUncaughtExceptionHandler(new MaxFailuresUncaughtExceptionHandler(3, 3600000 ))
 
   kafkaStreams.start()
   info("setup:complete topic=%s for bk=%s and groupId=%s".format(topic,commonConsumerConfig.getProperty(BOOTSTRAP_SERVERS_CONFIG),groupId))

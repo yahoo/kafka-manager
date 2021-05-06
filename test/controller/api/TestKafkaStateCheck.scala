@@ -5,25 +5,20 @@
 
 package controller.api
 
-import java.io.File
-import java.util.Properties
-
-import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
 import controllers.KafkaManagerContext
 import controllers.api.KafkaStateCheck
-import kafka.manager.KafkaManager
 import kafka.manager.utils.{CuratorAwareTest, KafkaServerInTest}
 import kafka.test.SeededBroker
 import loader.KafkaManagerLoaderForTests
-import org.scalatest.Matchers._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers._
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsDefined, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{Application, ApplicationLoader, Environment, Mode}
 import play.mvc.Http.Status.{BAD_REQUEST, OK}
 
+import java.io.File
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.Try
@@ -49,7 +44,7 @@ class TestKafkaStateCheck extends CuratorAwareTest with KafkaServerInTest with M
       "cmak.consumer.properties.file" -> "conf/consumer.properties"
     )
     val loader = new KafkaManagerLoaderForTests
-    application = Option(loader.load(ApplicationLoader.createContext(
+    application = Option(loader.load(ApplicationLoader.Context.create(
       Environment(new File("app"), Thread.currentThread().getContextClassLoader, Mode.Test)
       , configMap
     )))
